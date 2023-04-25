@@ -1,0 +1,3 @@
+/home/aih/Desktop/igw/build/CMakeFiles/rebuild_cache.dir
+/home/aih/Desktop/igw/build/CMakeFiles/edit_cache.dir
+/home/aih/Desktop/igw/build/CMakeFiles/igw_v1.dir
