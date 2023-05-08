@@ -1,6 +1,6 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
-void view_frame();
+int view_frame();
 
 #endif

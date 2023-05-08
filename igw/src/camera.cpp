@@ -1,7 +1,10 @@
 #include <iostream>
 #include "camera.hpp"
+#include <opencv2/opencv.hpp>
 
-void view_frame()
+using namespace cv;
+
+int view_frame()
 {
     cv::VideoCapture cap(0);
     if (!cap.isOpened())
