@@ -2,95 +2,118 @@
 #include <thread>
 #include "camera.hpp"
 
-int maxY,maxX,line1,line2, prev1_rl1=0, prev1_rl2=0, prev2_rl1=0, prev2_rl2=0;
+#define maxY 360
+#define maxX 640
+#define line1 maxX/3
+#define line2 maxX/3*2
+
 // max x and max y from the frame. line X as starting postitions. Previous of line 1 and 2 variables until 2 positions in the past.
 
-bool setup_camera(){
+cv::VideoCapture setup_camera(){
     cv::VideoCapture cap(0);
-    cap.set(cv::CAP_PROP_CONVERT_RGB, true);
+    cap.set(cv::CAP_PROP_FRAME_WIDTH, maxX);
+    cap.set(cv::CAP_PROP_FRAME_HEIGHT, maxY);
+    //cap.set(cv::CAP_PROP_FPS, cap.get(cv::CAP_PROP_FPS) * 0.5);
     
     if (!cap.isOpened())
     {
-        return 0;
-    }else{
-        return 1;   
+        std::cout << "frame failed";
     }
-    
- 
+    return cap;
 }
-int callibrate(int *mX, int *mY, int *l1, int *l2, int *p1rl1, int*p1rl2, int *p2rl1, int *p2rl2){
-    cv::VideoCapture cap(0);
+bool check_frame()
+{
+    //Make capture of videofeed in grayscale
+    cv::VideoCapture cap = setup_camera();
     cv::Mat frame;
     cap >> frame;
     if (frame.empty())
     {
         return 0;
     }
-    *mX = frame.rows;
-    *mY = frame.cols;
-    *l1 = maxX/3;
-    *l2 = maxX/3*2;
-
-    int result[]= get_measurements_points(); 
-    // try with pointers to safe results from the funtion above
-    *p2rl1 =*p1rl1; 
-    *p2rl2 =*p1rl2;
-    *p1rl1 = result[0];
-    *p1rl2 = result[1];
     return 1;
 }
-int get_measurements_point(int x, int y){
-    int result;
-    cv::VideoCapture cap(0);
+int callibrate(){
+    cv::VideoCapture cap = setup_camera();
     cv::Mat frame;
     cap >> frame;
-    cv::Vec3b pixel = frame.at<cv::Vec3b>(y, x);
-    result = (pixel[0] + pixel[1] + pixel[2])/3;
-    return result;
-}
-int get_measurements_points(){
-    int result[2];
-    int result_line1, result_line2, counter;
-    for(int i=maxY/2; i< maxY ; i+10){
-        result_line1 += get_measurements_point(line1, i);
-        result_line2 += get_measurements_point(line2, i);
-        counter= i;
-    }
-    result[0]=result_line1/counter;
-    result[1]=result_line2/counter;
-    return result;
-}
 
-int view_frame(bool x)
-{
-    if(!x){
-       return -1;
-    }
-    callibrate(&maxX,&maxY,&line1,&line2,&prev1_rl1, &prev1_rl2, &prev2_rl1, &prev2_rl2);
-    cv::VideoCapture cap(0);
-    cv::Mat frame;
- 
-    // get the pixel value at (x, y)
-    //cv::Vec3b pixel = frame.at<cv::Vec3b>(y, x);
- 
-    while (x)
+    int** result= get_measurements_points(); 
+    for(int i;i<sizeof(result[0]);i++)
     {
         
-        cap >> frame;
+    }
+    for(int i;i<sizeof(result[1]);i++)
+    {
+        
+    }
+  
+    // Deallocate the dynamically allocated memory
+    
+        for (int j = 0; j < maxY/2; j++) {
+            delete[] result[j];
+        }
+        delete[] result;
+    
+    return 1;
+}
+
+int get_measurements_point(int x, int y){
+    cv::VideoCapture cap = setup_camera();
+    cv::Mat frame;
+    cap.read(frame);
+    cv::Mat grayFrame;
+    cv::cvtColor(frame, grayFrame, cv::COLOR_BGR2GRAY);
+    return grayFrame.at<uchar>(y,x);
+}
+int** get_measurements_points(){
+    int** gray_array = new int*[2];
+    for(int x=0; x<2;x++){
+        gray_array[x] = new int[maxY];
+    
+    }
+  
+    int counter;
+    // maybe use multithreading to make it more efficient?
+    for(int y=0; y< maxY ; y++){
+        gray_array[0][y] = get_measurements_point(line1, y);
+        gray_array[1][y] = get_measurements_point(line2, y);
+    }
+  
+    return gray_array;
+}
+
+int view_frame()
+{
+    cv::VideoCapture cap = setup_camera();
+    cv::Mat frame;
+   // callibrate();
+  
+    while (true)
+    {
+        cap.read(frame);
         if (frame.empty())
         {
             break;
         }
+        cv::Mat grayFrame;
+        cv::cvtColor(frame, grayFrame, cv::COLOR_BGR2GRAY);
+        //std::cout << "frame width: " << cap.get(cv::CAP_PROP_FRAME_WIDTH)<< " frame height: "<< cap.get(cv::CAP_PROP_FRAME_HEIGHT) << "\n";
+        
+        // if get new frame renew parameters max width and height.
+        //cv::Point pt1(cap.get(cv::CAP_PROP_FRAME_WIDTH), 200); // start point
+        //cv::Point pt2(100, cap.get(cv::CAP_PROP_FRAME_HEIGHT)); // end point
+        //cv::Scalar color(0, 255, 0); // green color
 
-        cv::Point pt1(line1, maxY/2); // start point
-        cv::Point pt2(line1, maxY); // end point
-        cv::Scalar color(0, 255, 0); // green color
-
-        cv::line(frame, pt1, pt2, color, 2);
-        cv::imshow("Frame", frame);
+        //cv::line(grayFrame, pt1, pt2, color, 2);
+       
+        cv::imshow("GrayFrame", grayFrame);
         if (cv::waitKey(1) == 27)
         {
             break;
         }
     }
+    cap.release();
+    cv::destroyAllWindows();
+    return 0;
 }
