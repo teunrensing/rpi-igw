@@ -1,18 +1,19 @@
+#include <iostream>
+#include <opencv2/opencv.hpp>
 #include "camera.hpp"
 
-Camera::Camera() : maxY(360), maxX(640), line1(maxX / 3), line2(maxX / 3 * 2) {
-    // Constructor implementation
+Camera::Camera() : maxY(360), maxX(640), line1(210), line2(410), array_(nullptr) {
+    allocate_array();
 }
 
 Camera::~Camera() {
-    // Destructor implementation
+    deallocate_array();
 }
 
 cv::VideoCapture Camera::setup_camera() {
     cv::VideoCapture cap(0);
     cap.set(cv::CAP_PROP_FRAME_WIDTH, maxX);
     cap.set(cv::CAP_PROP_FRAME_HEIGHT, maxY);
-    //cap.set(cv::CAP_PROP_FPS, cap.get(cv::CAP_PROP_FPS) * 0.5);
 
     if (!cap.isOpened()) {
         std::cout << "Failed to open camera.";
@@ -30,61 +31,81 @@ bool Camera::check_frame() {
     return true;
 }
 
-MyPoint Camera::get_values_point(MyPoint p1) {
+cv::Mat Camera::get_gray_values_frame() {
     cv::VideoCapture cap = setup_camera();
     cv::Mat frame;
     cap.read(frame);
     cv::Mat grayFrame;
     cv::cvtColor(frame, grayFrame, cv::COLOR_BGR2GRAY);
-    p1.colorValue = grayFrame.at<uchar>(p1.y, p1.x);
-    return p1;
+    //p1.colorValue = grayFrame.at<uchar>(p1.y, p1.x);
+    return grayFrame;
 }
-
-int Camera::get_color_value_cube(MyPoint start, MyPoint end) {
-    // Function implementation
-    return 0;
-}
-
-int Camera::callibrate() {
-    cv::VideoCapture cap = setup_camera();
-    cv::Mat frame;
-    cap >> frame;
-
-    int** result = get_measurements_points();
-    for (int i = 0; i < maxY / 2; i++) {
-        for (int j = 0; j < sizeof(result[i]); j++) {
-            // Process the result array
+void Camera::set_values_cube(MyPoint start, MyPoint end, int pos) {
+    // Access the array elements and perform operations
+    // using the start and end points
+    cv:: Mat grayFrame = get_gray_values_frame();
+    MyPoint result;
+    for (int i = 0; i < MYLENGTH10; i++) {
+        for (int j = 0; j < MYLENGTH10; j++) {
+            result.x = start.x + i;
+            result.y = start.y + j;
+            if(result.x != end.x -(10-i)){
+                std::cout << "x values of result and end dont match"<<endl;
+             break;   
+            }
+            if(result.y != end.y -(10-j)){
+                std::cout << "y values of result and end dont match"<<endl;
+             break;   
+            }
+            //result.colorValue = grayFrame.at<uchar>(result.y, result.x);// make a seperate loop for it so it issn't used every call.
+            // Process the array
+            array_[pos][i][j]= result;//Allocate the values of point;
         }
     }
-
-    // Deallocate the dynamically allocated memory
-    for (int j = 0; j < maxY / 2; j++) {
-        delete[] result[j];
-    }
-    delete[] result;
-
-    return 1;
 }
 
-int** Camera::get_measurements_points() {
-    int** gray_array = new int*[2];
-    for (int x = 0; x < 2; x++) {
-        gray_array[x] = new int[maxY];
+int Camera::calibrate() {
+    MyPoint lt,rt,lb,rb;
+    
+    //Coordinates leftside
+    lt.y = maxY/2;
+    lt.x = line1;
+    lb.y = maxY;
+    lb.x = line1;
+    //Coordinates rightside
+    rt.y = maxY/2;
+    rt.x = line2;
+    rb.y = maxY;
+    rb.x = line2;
+    MyPoint start,end;
+    for(int i=0; i<13;i++){
+        start.x =line1;
+        start.y=maxY-10*i;
+        end.x=line1+10;
+        end.y=maxY-10*i;
+        set_values_cube(start,end,i);
     }
-
-    // maybe use multithreading to make it more efficient?
-    for (int y = 0; y < maxY; y++) {
-        //gray_array[0][y] = get_values_point( line1, y );
-        //gray_array[1][y] = get_values_point( line2, y );
+    for(int i=13; i<34;i++){
+        start.x =line1+10*i;
+        start.y=maxY/2;
+        end.x=line1+10+10*i;
+        end.y=maxY/2;
+        set_values_cube(start,end,i);
     }
-
-    return gray_array;
+    for(int i=34; i<47;i++){
+        start.x =line2;
+        start.y=maxY-10*i;
+        end.x=line2+10;
+        end.y=maxY-10*i;
+        set_values_cube(start,end,i);
+    }
+    return 1;
 }
 
 int Camera::view_frame() {
     cv::VideoCapture cap = setup_camera();
     cv::Mat frame;
-    // callibrate();
+    // calibrate();
 
     while (true) {
         cap.read(frame);
@@ -93,20 +114,33 @@ int Camera::view_frame() {
         }
         cv::Mat grayFrame;
         cv::cvtColor(frame, grayFrame, cv::COLOR_BGR2GRAY);
-        //std::cout << "frame width: " << cap.get(cv::CAP_PROP_FRAME_WIDTH) << " frame height: " << cap.get(cv::CAP_PROP_FRAME_HEIGHT) << "\n";
-
-        // if get new frame renew parameters max width and height.
-        //cv::Point pt1(cap.get(cv::CAP_PROP_FRAME_WIDTH), 200); // start point
-        //cv::Point pt2(100, cap.get(cv::CAP_PROP_FRAME_HEIGHT)); // end point
-        //cv::Scalar color //green
-        //cv::line(grayFrame, pt1, pt2, color, 2);
-
         cv::imshow("GrayFrame", grayFrame);
         if (cv::waitKey(1) == 27) {
             break;
         }
+    }
+    return 0;
 }
-cap.release();
-cv::destroyAllWindows();
-return 0;
+
+void Camera::allocate_array() {
+    array_ = new MyPoint**[MYLENGTH];
+    for (int i = 0; i < MYLENGTH10; i++) {
+        array_[i] = new MyPoint*[MYLENGTH10];
+        for (int j = 0; j < MYLENGTH10; j++) {
+            array_[i][j] = new MyPoint[MYLENGTH10];
+        }
+    }
+}
+
+void Camera::deallocate_array() {
+    if (array_) {
+        for (int i = 0; i < MYLENGTH10; i++) {
+            for (int j = 0; j < MYLENGTH10; j++) {
+                delete[] array_[i][j];
+            }
+            delete[] array_[i];
+        }
+        delete[] array_;
+        array_ = nullptr;
+    }
 }
