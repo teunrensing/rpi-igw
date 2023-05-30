@@ -28,14 +28,11 @@ public:
     // Sets up the camera by configuring frame width, frame height, etc.
     cv::VideoCapture setup_camera();
 
-    // Checks if a frame is available from the camera
-    bool check_frame();
-
     // Gets the color value of a specific point in the frame
     cv::Mat get_gray_values_frame();
 
     // Gets the color value of a cube defined by a start and end point
-   void set_values_cube(MyPoint start, MyPoint end, int pos);
+   int set_values_cube(MyPoint start, MyPoint end, int pos);
 
     // Performs calibration of the camera
     int calibrate();
@@ -45,6 +42,11 @@ public:
 
     // Views the camera frame and displays it
     int view_frame();
+    
+    // Takes a picture
+    int take_picture();
+    
+    int take_mono_picture();
 
     // Allocates memory for the 2D array
     void allocate_array();

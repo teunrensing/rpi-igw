@@ -4,7 +4,8 @@ int main() {
     Camera cam;
     
     cam.setup_camera();
-    cam.view_frame();
+    cam.calibrate();
+    cam.take_picture();
     return 0;
 }
 
