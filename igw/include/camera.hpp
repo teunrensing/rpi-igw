@@ -35,9 +35,9 @@ public:
     cv::Mat get_gray_values_frame();
 
     // Gets the color value of a cube defined by a start and end point
-    int set_values_color_cube(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture  cap);
-	void color_cube_pixels(const MyPoint& start, const MyPoint& end, int pos,cv::VideoCapture cap, cv::Mat& coloredFrame);
-	int get_color_value_cube(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture  cap);
+    int set_values_color_cube(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture&  cap);
+	void color_cube_pixels(const MyPoint& start, const MyPoint& end, int pos,cv::VideoCapture& cap, cv::Mat& coloredFrame);
+	int get_color_value_cube(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture&  cap);
     // Performs calibration of the camera
     void calibrate();
     
@@ -55,7 +55,7 @@ public:
     int take_mono_picture();
 
 private:
-	int colorValues[56];
+	int colorValues[58];
 	unsigned int detectedCounter = 0;
 	bool detectedRight = false, detectedMiddle = false, detectedLeft = false;
 

@@ -44,7 +44,7 @@ void Camera::calibrate() {
         start.y =startPosY[i];
         end.x = start.x +9;
         end.y= start.y +9;
-        set_values_color_cube(start, end, i+22, cap);
+        set_values_color_cube(start, end, i+23, cap);
     }
 
     for (int i = 0; i <(sizeof(startPosX)/sizeof(startPosX[0])); i++) {
@@ -52,7 +52,7 @@ void Camera::calibrate() {
         start.y =130;
         end.x = line2-1;
         end.y= start.y +9;
-        set_values_color_cube(start, end, i+44, cap);
+        set_values_color_cube(start, end, i+46, cap);
     }
     cap.release();
     // std::cout <<"end calibrate"<<endl;
@@ -62,13 +62,14 @@ void Camera::calibrate() {
 int Camera::detectChange(){
     cv::VideoCapture cap = setup_camera();
     cv::Mat frame;
-    int sens = 40;
+    int sens = 20;
+    const int range = 23;//(sizeof(startPosY)/sizeof(startPosY[0]));
     MyPoint start, end;
      if (frame.empty()) {
             std::cout << "empty frame" << std::endl;
         }
        
-    for(int i=0;i<(sizeof(startPosY)/sizeof(startPosY[0]));i++){
+    for(int i=0;i<range;i++){
         start.x = line1;
         start.y =startPosY[i];
         end.x = start.x +9;
@@ -77,23 +78,23 @@ int Camera::detectChange(){
         if(( currentValue-colorValues[i]) < -sens ||(currentValue -colorValues[i]) > sens){
             detectedCounter++;
             detectedLeft = true;
-            std::cout<< "Current value: "<< currentValue<< " Default value: "<< colorValues[i]<< endl;
+            std::cout<< "Current value: "<< currentValue<< " Default value: "<< colorValues[i]<<" Print i: "<< i<< endl;
             std::cout<<"Detected a change at the left, the total changes detected are: "<< detectedCounter<< endl;
             break;
         }else{
             
         }
     }
-    for (int i = 0; i<(sizeof(startPosY)/sizeof(startPosY[0])); i++) {
+    for (int i = 0; i<range; i++) {
         start.x = line2;
         start.y =startPosY[i];
         end.x = start.x +9;
         end.y= start.y +9;
-        int currentValue = get_color_value_cube(start, end, i+22, cap);
-        if((currentValue -colorValues[i+22]) < -sens ||(currentValue-colorValues[i+22]) > sens){
+        int currentValue = get_color_value_cube(start, end, i+range, cap);
+        if((currentValue -colorValues[i+range]) < -sens ||(currentValue-colorValues[i+range]) > sens){
             detectedCounter++;
             detectedRight = true;
-            std::cout<< "Current value: "<< currentValue<< " Default value: "<< colorValues[i]<< endl;
+            std::cout<< "Current value: "<< currentValue<< " Default value: "<< colorValues[i+range]<<" Print i: "<< i+range<< endl;
             std::cout<<"Detected a change at the right, the total changes detected are: "<< detectedCounter<< endl;
             break;
         }else{
@@ -102,15 +103,15 @@ int Camera::detectChange(){
     }
 
     for (int i = 0; i <(sizeof(startPosX)/sizeof(startPosX[0])); i++) {
-        start.x = startPosX[i];
+        start.x = startPosX[i];1
         start.y =130;
         end.x = line2-1;
         end.y= start.y +9;
-        int currentValue = get_color_value_cube(start, end, i+44, cap);
-        if((currentValue -colorValues[i+44]) < -sens ||(currentValue -colorValues[i+44]) > sens){
+        int currentValue = get_color_value_cube(start, end, i+range*2, cap);
+        if((currentValue -colorValues[i+range*2]) < -sens ||(currentValue -colorValues[i+range*2]) > sens){
             detectedCounter++;
             detectedMiddle = true;
-            std::cout<< "Current value: "<< currentValue<< " Default value: "<< colorValues[i]<< endl;
+            std::cout<< "Current value: "<< currentValue<< " Default value: "<< colorValues[i+range*2]<<" Print i: "<< i+range*2<< endl;
             std::cout<<"Detected a change at the middle, the total changes detected are: "<< detectedCounter<< endl;
             break;
         }else{
@@ -131,15 +132,14 @@ cv::Mat Camera::get_gray_values_frame() {
     return grayFrame;
 }*/
 
-int Camera::set_values_color_cube(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture  cap) {
+int Camera::set_values_color_cube(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture&  cap) {
         //std::cout << "start cube" << std::endl;
         cv::Mat frame;
         cap.read(frame);
         cv::Mat grayFrame;
         cv::cvtColor(frame, grayFrame, cv::COLOR_BGR2GRAY);
-        unsigned int colorValue = 0;
-        unsigned int totalColorValue = 0;
-        int timesX=0;
+        int colorValue = 0;
+        int totalColorValue = 0;
         
         for (int i = 0; i < MYLENGTH10; i++) {
             MyPoint result;
@@ -162,26 +162,23 @@ int Camera::set_values_color_cube(const MyPoint& start, const MyPoint& end, int 
 
                 colorValue += grayFrame.at<uchar>(result.y,result.x);
                 //std::cout <<"Color value: "<< colorValue << endl;
-                timesX++;
             }
-            totalColorValue += colorValue/timesX;
-            //std::cout <<"Total color value: "<< totalColorValue << endl;
-            timesX=0;
+            totalColorValue += colorValue/MYLENGTH10;
+            //std::cout <<"Total color value: "<< totalColorValue << endl;           
             colorValue=0;
         }
-        colorValues[pos] = totalColorValue/10;
+        colorValues[pos] = totalColorValue/MYLENGTH10;
        // std::cout << "passed check result matches end" << std::endl;
         return 0;
 }
-int Camera::get_color_value_cube(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture  cap) {
+int Camera::get_color_value_cube(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture&  cap) {
         //std::cout << "start cube" << std::endl;
         cv::Mat frame;
         cap.read(frame);
         cv::Mat grayFrame;
         cv::cvtColor(frame, grayFrame, cv::COLOR_BGR2GRAY);
-        unsigned int colorValue = 0;
-        unsigned int totalColorValue = 0;
-        int timesX=0;
+        int colorValue = 0;
+        int totalColorValue = 0;
         
         for (int i = 0; i < MYLENGTH10; i++) {
             MyPoint result;
@@ -190,20 +187,16 @@ int Camera::get_color_value_cube(const MyPoint& start, const MyPoint& end, int p
 
             for (int j = 0; j < MYLENGTH10; j++) {
                 result.x = start.x + j;
-
-
                 colorValue += grayFrame.at<uchar>(result.y,result.x);
-                timesX++;
             }
-            totalColorValue += colorValue/timesX;
-            timesX=0;
+            totalColorValue += colorValue/MYLENGTH10;
             colorValue=0;
         }
         
-        return  totalColorValue/10;
+        return  totalColorValue/MYLENGTH10;
 }
 
-void Camera::color_cube_pixels(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture cap ,cv::Mat& coloredFrame) {
+void Camera::color_cube_pixels(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture& cap ,cv::Mat& coloredFrame) {
     cv::Mat frame;
     cap.read(frame);
 
