@@ -2,12 +2,14 @@
 #include <opencv2/opencv.hpp>
 #include "camera.hpp"
 
-Camera::Camera() : maxY(360), maxX(640), line1(210), line2(410), array_(nullptr) {
-    allocate_array();
+int startPosX[]={210,220,230,240,250,260,270,280,290,300,310,320,330,340,350,360,370,380,390,400,410};
+int startPosY[]={130,140,150,160,170,180,190,200,210,220,230,240,250,260,270,280,290,300,310,320,330,340,350};
+
+Camera::Camera() : maxY(360), maxX(640), line1(210), line2(410) {
+    
 }
 
 Camera::~Camera() {
-    deallocate_array();
 }
 
 cv::VideoCapture Camera::setup_camera() {
@@ -21,7 +23,104 @@ cv::VideoCapture Camera::setup_camera() {
     return cap;
 }
 
+void Camera::calibrate() {
+    // std::cout << "start calibrate" << std::endl;
+    cv::VideoCapture cap = setup_camera();
+    cv::Mat frame;
+    MyPoint start, end;
+     if (frame.empty()) {
+            std::cout << "empty frame" << std::endl;
+        }
+       
+    for(int i=0;i<(sizeof(startPosY)/sizeof(startPosY[0]));i++){
+        start.x = line1;
+        start.y =startPosY[i];
+        end.x = start.x +9;
+        end.y= start.y +9;
+        set_values_color_cube(start, end, i, cap);
+    }
+    for (int i = 0; i<(sizeof(startPosY)/sizeof(startPosY[0])); i++) {
+        start.x = line2;
+        start.y =startPosY[i];
+        end.x = start.x +9;
+        end.y= start.y +9;
+        set_values_color_cube(start, end, i+22, cap);
+    }
 
+    for (int i = 0; i <(sizeof(startPosX)/sizeof(startPosX[0])); i++) {
+        start.x = startPosX[i];
+        start.y =130;
+        end.x = line2-1;
+        end.y= start.y +9;
+        set_values_color_cube(start, end, i+44, cap);
+    }
+    cap.release();
+    // std::cout <<"end calibrate"<<endl;
+    
+    
+}
+int Camera::detectChange(){
+    cv::VideoCapture cap = setup_camera();
+    cv::Mat frame;
+    int sens = 40;
+    MyPoint start, end;
+     if (frame.empty()) {
+            std::cout << "empty frame" << std::endl;
+        }
+       
+    for(int i=0;i<(sizeof(startPosY)/sizeof(startPosY[0]));i++){
+        start.x = line1;
+        start.y =startPosY[i];
+        end.x = start.x +9;
+        end.y= start.y +9;
+        int currentValue = get_color_value_cube(start, end, i, cap);
+        if(( currentValue-colorValues[i]) < -sens ||(currentValue -colorValues[i]) > sens){
+            detectedCounter++;
+            detectedLeft = true;
+            std::cout<< "Current value: "<< currentValue<< " Default value: "<< colorValues[i]<< endl;
+            std::cout<<"Detected a change at the left, the total changes detected are: "<< detectedCounter<< endl;
+            break;
+        }else{
+            
+        }
+    }
+    for (int i = 0; i<(sizeof(startPosY)/sizeof(startPosY[0])); i++) {
+        start.x = line2;
+        start.y =startPosY[i];
+        end.x = start.x +9;
+        end.y= start.y +9;
+        int currentValue = get_color_value_cube(start, end, i+22, cap);
+        if((currentValue -colorValues[i+22]) < -sens ||(currentValue-colorValues[i+22]) > sens){
+            detectedCounter++;
+            detectedRight = true;
+            std::cout<< "Current value: "<< currentValue<< " Default value: "<< colorValues[i]<< endl;
+            std::cout<<"Detected a change at the right, the total changes detected are: "<< detectedCounter<< endl;
+            break;
+        }else{
+       
+        }
+    }
+
+    for (int i = 0; i <(sizeof(startPosX)/sizeof(startPosX[0])); i++) {
+        start.x = startPosX[i];
+        start.y =130;
+        end.x = line2-1;
+        end.y= start.y +9;
+        int currentValue = get_color_value_cube(start, end, i+44, cap);
+        if((currentValue -colorValues[i+44]) < -sens ||(currentValue -colorValues[i+44]) > sens){
+            detectedCounter++;
+            detectedMiddle = true;
+            std::cout<< "Current value: "<< currentValue<< " Default value: "<< colorValues[i]<< endl;
+            std::cout<<"Detected a change at the middle, the total changes detected are: "<< detectedCounter<< endl;
+            break;
+        }else{
+        
+        }
+    }
+    cap.release();
+    return 0;
+}
+/*
 cv::Mat Camera::get_gray_values_frame() {
     cv::VideoCapture cap = setup_camera();
     cv::Mat frame;
@@ -30,120 +129,121 @@ cv::Mat Camera::get_gray_values_frame() {
     cv::cvtColor(frame, grayFrame, cv::COLOR_BGR2GRAY);
     //p1.colorValue = grayFrame.at<uchar>(p1.y, p1.x);
     return grayFrame;
-}
-int Camera::set_values_cube(MyPoint start, MyPoint end, int pos) {
-    std::cout << "start cube" << std::endl;
-    MyPoint result;
+}*/
 
-    for (int i = 0; i < MYLENGTH10; i++)
-    {
-        result.y = start.y + i;
-        if (result.y != end.y - (MYLENGTH10 - i))
-        {
-            std::cout << "y values of result and end don't match" << std::endl;
-            std::cout << "result.y: " << result.y << ", expected: " << end.y + (MYLENGTH10 - i) << std::endl;
-             return -1;
+int Camera::set_values_color_cube(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture  cap) {
+        //std::cout << "start cube" << std::endl;
+        cv::Mat frame;
+        cap.read(frame);
+        cv::Mat grayFrame;
+        cv::cvtColor(frame, grayFrame, cv::COLOR_BGR2GRAY);
+        unsigned int colorValue = 0;
+        unsigned int totalColorValue = 0;
+        int timesX=0;
+        
+        for (int i = 0; i < MYLENGTH10; i++) {
+            MyPoint result;
+            result.y = start.y + i;
+
+            /*if (result.y != end.y - (MYLENGTH10 - i)) {
+                std::cout << "y values of result and end don't match" << std::endl;
+                std::cout << "result.y: " << result.y << ", expected: " << end.y + (MYLENGTH10 - i) << std::endl;
+                return -1;
+            }*/
+
+            for (int j = 0; j < MYLENGTH10; j++) {
+                result.x = start.x + j;
+
+                /*if (result.x != end.x - (MYLENGTH10 - j)) {
+                    std::cout << "x values of result and end don't match" << std::endl;
+                    std::cout << "result.x: " << result.x << ", expected: " << end.x - (MYLENGTH10 - j) << std::endl;
+                    return -1;
+                }*/
+
+                colorValue += grayFrame.at<uchar>(result.y,result.x);
+                //std::cout <<"Color value: "<< colorValue << endl;
+                timesX++;
+            }
+            totalColorValue += colorValue/timesX;
+            //std::cout <<"Total color value: "<< totalColorValue << endl;
+            timesX=0;
+            colorValue=0;
+        }
+        colorValues[pos] = totalColorValue/10;
+       // std::cout << "passed check result matches end" << std::endl;
+        return 0;
+}
+int Camera::get_color_value_cube(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture  cap) {
+        //std::cout << "start cube" << std::endl;
+        cv::Mat frame;
+        cap.read(frame);
+        cv::Mat grayFrame;
+        cv::cvtColor(frame, grayFrame, cv::COLOR_BGR2GRAY);
+        unsigned int colorValue = 0;
+        unsigned int totalColorValue = 0;
+        int timesX=0;
+        
+        for (int i = 0; i < MYLENGTH10; i++) {
+            MyPoint result;
+            result.y = start.y + i;
+
+
+            for (int j = 0; j < MYLENGTH10; j++) {
+                result.x = start.x + j;
+
+
+                colorValue += grayFrame.at<uchar>(result.y,result.x);
+                timesX++;
+            }
+            totalColorValue += colorValue/timesX;
+            timesX=0;
+            colorValue=0;
         }
         
-        for (int j = 0; j < MYLENGTH10; j++)
-        {
-          
+        return  totalColorValue/10;
+}
+
+void Camera::color_cube_pixels(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture cap ,cv::Mat& coloredFrame) {
+    cv::Mat frame;
+    cap.read(frame);
+
+    for (int i = 0; i < MYLENGTH10; i++) {
+        MyPoint result;
+        result.y = start.y + i;
+
+        for (int j = 0; j < MYLENGTH10; j++) {
             result.x = start.x + j;
 
-            if (result.x != end.x - (MYLENGTH10 - j))
-            {
-                std::cout << "x values of result and end don't match" << std::endl;
-                std::cout << "result.x: " << result.x << ", expected: " << end.x - (MYLENGTH10 - j) << std::endl;
-                return -1;
-            }
-         
-            array_[pos][i][j] = result;
+            // Set the color value of the pixel to a specific color
+            coloredFrame.at<cv::Vec3b>(result.y, result.x) = cv::Vec3b(0, 0, 255);  // Blue color (BGR format)
         }
-
     }
-    std::cout << "passed check result matches end" << std::endl;
-    return 0;
-  
 }
 
-int Camera::calibrate() {
-    MyPoint lt,rt,lb,rb;
-   // std::cout << "start calibrate" << std::endl;
-    //Coordinates leftside
-    lt.y = maxY/2;
-    lt.x = line1;
-    lb.y = maxY;
-    lb.x = line1;
-    //Coordinates rightside
-    rt.y = maxY/2;
-    rt.x = line2;
-    rb.y = maxY;
-    rb.x = line2;
-    MyPoint start,end;
- /*   
-        start.x =line1;
-        start.y=(maxY-10);
-        end.x=line1+10;
-        end.y=maxY;
-        set_values_cube(start,end,0);
-*/
-try {
-    for(int i = 0; i < 13; i++) {
-        std::cout << "Loop iteration: " << i << std::endl;
-        start.x = line1;
-        start.y = (maxY - 10) - 10 * i;
-        end.x = line1 + 10;
-        end.y = maxY - 10 * i;
-        set_values_cube(start, end, i);
-    }
-} catch (const std::exception& e) {
-    std::cout << "An exception occurred: " << e.what() << std::endl;
-}
-
-    /*for(int i=0; i<1;i++){
-        start.x =line1;
-        start.y=(maxY-10)-10*i;
-        end.x=line1+10;
-        end.y=maxY-10*i;
-        set_values_cube(start,end,i);
-    }
-    for(int i=13; i<34;i++){
-        start.x =line1+10*i;
-        start.y=maxY/2;
-        end.x=line1+10+10*i;
-        end.y=maxY/2;
-        set_values_cube(start,end,i);
-    }
-    for(int i=34; i<47;i++){
-        start.x =line2;
-        start.y=maxY-10*i;
-        end.x=line2+10;
-        end.y=maxY-10*i;
-        set_values_cube(start,end,i);
-    }*/
-   // std::cout <<"end calibrate"<<endl;
-    return 0;
-}
 
 int Camera::view_frame() {
     cv::VideoCapture cap = setup_camera();
     cv::Mat frame;
-    // calibrate();
 
     while (true) {
         cap.read(frame);
         if (frame.empty()) {
+            std::cout << "empty frame" << std::endl;
             break;
         }
-        cv::Mat grayFrame;
-        cv::cvtColor(frame, grayFrame, cv::COLOR_BGR2GRAY);
-        cv::imshow("GrayFrame", grayFrame);
+        
+
+        cv::imshow("Frame", frame);
+
         if (cv::waitKey(1) == 27) {
             break;
         }
     }
+    cap.release();
+    cv::destroyAllWindows();
     return 0;
 }
+
 
 int Camera::take_picture(){
    cv::VideoCapture cap = setup_camera();
@@ -164,23 +264,37 @@ int Camera::take_picture(){
             break;
         }
 
-        cv::imshow("Camera Feed", frame);
-        //cv::rectangle(frame, cv::Point(1, 1), cv::Point(10, 10), cv::Scalar(0, 255, 0), 2);//drawing a rectangle
-         
+        cv::imshow("Camera Feed", frame);         
         char key = cv::waitKey(1);
      
-        if (key == ' ')
-        {   
-            for(int x=0; x< 3;x++){
-                for(int y=0; y< MYLENGTH10 ;y++){
-                    for(int z=0; z<MYLENGTH10;z++){
-                        MyPoint r = array_[x][y][z];
-                        frame.at<cv::Vec3b>(r.y, r.x) = cv::Vec3b(0, 0, 255);// set pixel red
-                    }
-                }
+        if (key == ' '){   
+            MyPoint start, end;
+            cv::Mat coloredFrame = frame.clone(); // Create a clone of the frame
+            for (int i = 0; i < (sizeof(startPosY) / sizeof(startPosY[0])); i++) {
+                start.x = line1;
+                start.y = startPosY[i];
+                end.x = start.x + 9;
+                end.y = start.y + 9;
+                color_cube_pixels(start, end, i, cap, coloredFrame);
             }
-            std::string filename = "test_pictures/test_color_pic" + std::to_string(i) + ".jpg";
-            cv::imwrite(filename, frame);
+            
+            for (int i = 0; i < (sizeof(startPosY) / sizeof(startPosY[0])); i++) {
+                start.x = line2;
+                start.y = startPosY[i];
+                end.x = start.x + 9;
+                end.y = start.y + 9;
+                color_cube_pixels(start, end, i + 22, cap, coloredFrame);
+            }
+            
+            for (int i = 0; i < (sizeof(startPosX) / sizeof(startPosX[0])); i++) {
+                start.x = startPosX[i];
+                start.y = 130;
+                end.x = line2 - 1;
+                end.y = start.y + 9;
+                color_cube_pixels(start, end, i + 44, cap, coloredFrame);
+            }
+            std::string filename = "test_pictures/test_borders_pic" + std::to_string(i) + ".jpg";
+            cv::imwrite(filename, coloredFrame);
             std::cout << "Image captured and saved as " << filename << std::endl;
             i++;
         }
@@ -243,25 +357,4 @@ int Camera::take_mono_picture(){
 }
 
 
-void Camera::allocate_array() {
-    array_ = new MyPoint**[MYLENGTH];
-    for (int i = 0; i < MYLENGTH10; i++) {
-        array_[i] = new MyPoint*[MYLENGTH10];
-        for (int j = 0; j < MYLENGTH10; j++) {
-            array_[i][j] = new MyPoint[MYLENGTH10];
-        }
-    }
-}
 
-void Camera::deallocate_array() {
-    if (array_) {
-        for (int i = 0; i < MYLENGTH10; i++) {
-            for (int j = 0; j < MYLENGTH10; j++) {
-                delete[] array_[i][j];
-            }
-            delete[] array_[i];
-        }
-        delete[] array_;
-        array_ = nullptr;
-    }
-}

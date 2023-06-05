@@ -14,6 +14,9 @@ struct MyPoint {
     int x;
     int y;
     int colorValue = 0;
+    
+    MyPoint() : x(0), y(0), colorValue(0) {}
+    MyPoint(int xCoord, int yCoord, int color) : x(xCoord), y(yCoord), colorValue(color) {}
 };
 
 // Class representing a camera
@@ -32,10 +35,13 @@ public:
     cv::Mat get_gray_values_frame();
 
     // Gets the color value of a cube defined by a start and end point
-   int set_values_cube(MyPoint start, MyPoint end, int pos);
-
+    int set_values_color_cube(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture  cap);
+	void color_cube_pixels(const MyPoint& start, const MyPoint& end, int pos,cv::VideoCapture cap, cv::Mat& coloredFrame);
+	int get_color_value_cube(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture  cap);
     // Performs calibration of the camera
-    int calibrate();
+    void calibrate();
+    
+    int detectChange();
 
     // Retrieves measurements points from the camera
     int** get_measurements_points();
@@ -48,18 +54,15 @@ public:
     
     int take_mono_picture();
 
-    // Allocates memory for the 2D array
-    void allocate_array();
-
-    // Deallocates memory for the 2D array
-    void deallocate_array();
-
 private:
+	int colorValues[56];
+	unsigned int detectedCounter = 0;
+	bool detectedRight = false, detectedMiddle = false, detectedLeft = false;
+
     int maxY;   // Maximum y-coordinate of the frame
     int maxX;   // Maximum x-coordinate of the frame
     int line1;  // Starting position of line 1
     int line2;  // Starting position of line 2
-    MyPoint*** array_;  // 2D array of MyPoints
 };
 
 #endif // CAMERA_HPP

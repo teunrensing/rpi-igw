@@ -2,10 +2,12 @@
 #include "camera.hpp"
 int main() {
     Camera cam;
-    
-    cam.setup_camera();
     cam.calibrate();
-    cam.take_picture();
+    while(1){
+        cam.detectChange();
+    }
+    
+    std::cout << "END__________________________________________________";
     return 0;
 }
 
