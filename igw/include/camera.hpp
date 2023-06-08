@@ -7,7 +7,7 @@
 
 #define MYLENGTH10 10
 #define MYLENGTH20 20
-#define MYLENGTH 92
+#define MYLENGTH 56
 
 // Structure to represent a point with x, y coordinates and a color value
 struct MyPoint {
@@ -31,19 +31,22 @@ public:
     // Sets up the camera by configuring frame width, frame height, etc.
     cv::VideoCapture setup_camera();
 
-    // Gets the color value of a specific point in the frame
-    cv::Mat get_gray_values_frame();
-
     // Gets the color value of a cube defined by a start and end point
-    int set_values_color_cube(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture&  cap);
-	void color_cube_pixels(const MyPoint& start, const MyPoint& end, int pos,cv::VideoCapture& cap, cv::Mat& coloredFrame);
-	int get_color_value_cube(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture&  cap);
+    int set_values_color_cube(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture& cap);
+	
+    // Colors the pixels within a cube defined by a start and end point
+    void color_cube_pixels(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture& cap, cv::Mat& coloredFrame);
+	
+    // Retrieves the color value of a cube defined by a start and end point
+    int get_color_value_cube(const MyPoint& start, const MyPoint& end, int pos, cv::VideoCapture& cap);
+
     // Performs calibration of the camera
     void calibrate();
     
+    // Detects changes in the camera frame
     int detectChange();
 
-    // Retrieves measurements points from the camera
+    // Retrieves measurement points from the camera
     int** get_measurements_points();
 
     // Views the camera frame and displays it
@@ -52,12 +55,13 @@ public:
     // Takes a picture
     int take_picture();
     
+    // Takes a monochrome picture
     int take_mono_picture();
 
 private:
-	int colorValues[58];
-	unsigned int detectedCounter = 0;
-	bool detectedRight = false, detectedMiddle = false, detectedLeft = false;
+    int colorValues[MYLENGTH];    // Array to store color values
+    unsigned int detectedCounter = 0;    // Counter for detected changes
+    bool detectedRight = false, detectedMiddle = false, detectedLeft = false;    // Flags for detected positions
 
     int maxY;   // Maximum y-coordinate of the frame
     int maxX;   // Maximum x-coordinate of the frame

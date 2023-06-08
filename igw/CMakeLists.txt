@@ -10,7 +10,7 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 # Add the header and source files to the project
 include_directories(include)
-add_executable(igw_v1 src/main.cpp src/camera.cpp src/line.cpp)
+add_executable(igw_v1 src/main.cpp src/camera.cpp)
 
 # Link the OpenCV libraries to the project
 target_link_libraries(igw_v1 ${OpenCV_LIBS})
