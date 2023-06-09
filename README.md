@@ -94,9 +94,9 @@ This diagram illustrates the relationships and attributes of the classes involve
 
 # Function Diagram
 
-+-----------------------------------------------------------------------------------------------+
-|                                           Camera                                              |
-+-----------------------------------------------------------------------------------------------+
++------------------------------------------------------------------------------------------------+
+|                                           Camera                                               |
++------------------------------------------------------------------------------------------------+
 |  -Camera()                                                                                     |
 |  -~Camera()                                                                                    |
 |  -setup_camera() -> cv::VideoCapture                                                           |
@@ -108,7 +108,7 @@ This diagram illustrates the relationships and attributes of the classes involve
 |  -view_frame() -> int                                                                          |
 |  -take_picture() -> int                                                                        |
 |  -take_mono_picture() -> int                                                                   |
-+-----------------------------------------------------------------------------------------------+
++------------------------------------------------------------------------------------------------+
 The `Camera` class represents a camera device and provides various functions for interacting with it. Here's a breakdown of the functions:
 
 - `Camera()`: This is the constructor for the `Camera` class, used to create a new camera object.
