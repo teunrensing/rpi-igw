@@ -92,7 +92,3 @@ The `Camera` class provides various functions for camera setup, calibration, fra
 - `take_mono_picture() -> int`: Takes a monochrome picture using the camera and returns an integer indicating success or failure.
 
 Please refer to the source code for more details and implementation specifics.
-
----
-
-You can use the provided information to create a detailed and informative README.md for your GitHub repository.
