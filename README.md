@@ -1,9 +1,11 @@
 # Rpi-4 vision project
 This project started on: 21-3-2023 : 12.07
 
-This is a work in progress
+This repository contains a C++ codebase for a Raspberry Pi 4 vision project. The project aims to develop a camera system that allows interaction with a video capture device. It provides functionalities such as camera setup, color calibration, change detection, and image capture.
 
-# Genral Discription
+Please note that this project is currently a work in progress and may undergo further development and refinement.
+
+### General Description
 
 The provided code implements a camera system in C++ that allows interaction with a video capture device. It provides various functionalities such as camera setup, color calibration, change detection, and image capture.
 
@@ -15,8 +17,11 @@ Additionally, the code provides functionalities for capturing frames from the ca
 
 Overall, this code offers a framework for camera interaction and manipulation. It can be utilized in various applications that require camera functionality, such as computer vision projects, robotics, surveillance systems, and more.
 
-# Class Diagram
+### Class Diagram
 
+The class diagram illustrates the relationships and attributes of the classes involved in the system:
+
+```
                  +----------------------+
                  |       Camera         |
                  +----------------------+
@@ -59,74 +64,35 @@ Overall, this code offers a framework for camera interaction and manipulation. I
               | - Color channels       |
               | - Image dimensions     |
               +------------------------+
+```
+
 The diagram represents a system that includes four classes: `Camera`, `MyPoint`, `cv::VideoCapture`, and `cv::Mat`.
 
-`Camera` class:
-- Attributes:
-  - `colorValues[]`: An array to store color values.
-  - `detectedCounter`: A counter for tracking the number of detected objects.
-  - `detectedRight`: A variable to track the number of objects detected on the right side.
-  - `detectedMiddle`: A variable to track the number of objects detected in the middle.
-  - `detectedLeft`: A variable to track the number of objects detected on the left side.
-  - `maxY`: Maximum Y-coordinate value.
-  - `maxX`: Maximum X-coordinate value.
-  - `line1`: Represents a line.
-  - `line2`: Represents another line.
+- The `Camera` class represents a camera device and provides functionalities related to camera setup, calibration, change detection, and image capture. It has attributes such as `colorValues`, `detectedCounter`, `detectedRight`, `detectedMiddle`, `detectedLeft`, `maxY`, `maxX`, `line1`, and `line2`.
+- The `MyPoint` class represents a point in the camera frame and contains attributes `x`, `y`, and `colorValue`.
+- The `cv::VideoCapture` class represents a video capture device and provides access to video frames. It has attributes `Frame width` and `Frame height`.
+- The `cv::Mat` class represents an image matrix and stores pixel data, color channels, and image dimensions.
 
-`MyPoint` class:
-- Attributes:
-  - `x`: X-coordinate value.
-  - `y`: Y-coordinate value.
-  - `colorValue`: Represents a color value.
+### Camera Class Functions
 
-`cv::VideoCapture` class:
-- Attributes:
-  - `Frame width`: Width of the captured video frame.
-  - `Frame height`: Height of the captured video frame.
+The `Camera` class provides various functions for camera setup, calibration, frame analysis, and image capture. Here's
 
-`cv::Mat` class:
-- Attributes:
-  - `Image data`: Represents the pixel data of an image.
-  - `Color channels`: Indicates the number of color channels in the image (e.g., RGB or grayscale).
-  - `Image dimensions`: Specifies the dimensions (width and height) of the image.
+ an overview of the available functions:
 
-This diagram illustrates the relationships and attributes of the classes involved in the system. The `Camera` class uses instances of the `MyPoint` class to store and manipulate points. It also interacts with the `cv::VideoCapture` class, which represents a video capturing device, to obtain video frames. The `cv::Mat` class is used to handle image data, including the pixel values, color channels, and dimensions.   
+- `Camera()`: Initializes a Camera object.
+- `~Camera()`: Cleans up resources and destroys the Camera object.
+- `setup_camera() -> cv::VideoCapture`: Sets up the camera by initializing a `cv::VideoCapture` object and returns it.
+- `calibrate()`: Performs camera calibration.
+- `detectChange() -> int`: Detects changes in the camera frame and returns an integer indicating the result.
+- `set_values_color_cube(const MyPoint&, const MyPoint&, int, cv::VideoCapture&) -> int`: Sets color values for a cube defined by two `MyPoint` objects, an integer, and a `cv::VideoCapture` object. Returns an integer indicating success or failure.
+- `get_color_value_cube(const MyPoint&, const MyPoint&, int, cv::VideoCapture&) -> int`: Retrieves the color value for a cube defined by two `MyPoint` objects, an integer, and a `cv::VideoCapture` object. Returns an integer indicating success or failure.
+- `color_cube_pixels(const MyPoint&, const MyPoint&, int, cv::VideoCapture&, cv::Mat&) -> void`: Retrieves the color values of pixels within a cube defined by two `MyPoint` objects, an integer, a `cv::VideoCapture` object, and a `cv::Mat` object. Modifies the `cv::Mat` object with the pixel values.
+- `view_frame() -> int`: Displays the camera frame and returns an integer indicating success or failure.
+- `take_picture() -> int`: Takes a picture using the camera and returns an integer indicating success or failure.
+- `take_mono_picture() -> int`: Takes a monochrome picture using the camera and returns an integer indicating success or failure.
 
-# Function Diagram
+Please refer to the source code for more details and implementation specifics.
 
-+------------------------------------------------------------------------------------------------+
-|                                           Camera                                               |
-+------------------------------------------------------------------------------------------------+
-|  -Camera()                                                                                     |
-|  -~Camera()                                                                                    |
-|  -setup_camera() -> cv::VideoCapture                                                           |
-|  -calibrate()                                                                                  |
-|  -detectChange() -> int                                                                        |
-|  -set_values_color_cube(const MyPoint&, const MyPoint&, int, cv::VideoCapture&) -> int         |
-|  -get_color_value_cube(const MyPoint&, const MyPoint&, int, cv::VideoCapture&) -> int          |
-|  -color_cube_pixels(const MyPoint&, const MyPoint&, int, cv::VideoCapture&, cv::Mat&) -> void  |
-|  -view_frame() -> int                                                                          |
-|  -take_picture() -> int                                                                        |
-|  -take_mono_picture() -> int                                                                   |
-+------------------------------------------------------------------------------------------------+
-The `Camera` class represents a camera device and provides various functions for interacting with it. Here's a breakdown of the functions:
+---
 
-- `Camera()`: This is the constructor for the `Camera` class, used to create a new camera object.
-- `~Camera()`: This is the destructor for the `Camera` class, responsible for cleaning up any resources associated with the camera object.
-
-Camera setup and calibration:
-- `setup_camera() -> cv::VideoCapture`: This function sets up the camera for capturing video frames and returns a `cv::VideoCapture` object that can be used for further operations.
-- `calibrate()`: This function performs camera calibration, which involves estimating camera parameters to correct for lens distortions and other factors.
-
-Change detection and color analysis:
-- `detectChange() -> int`: This function detects changes in the camera frame and returns the number of detected changes.
-- `set_values_color_cube(const MyPoint&, const MyPoint&, int, cv::VideoCapture&) -> int`: This function sets the values for a color cube used in color analysis, taking two corner points, a side length, and a video capture object as parameters. It returns a status code indicating the success of the operation.
-- `get_color_value_cube(const MyPoint&, const MyPoint&, int, cv::VideoCapture&) -> int`: This function retrieves the color value of the color cube, based on the provided corner points, side length, and video capture object. It returns a status code indicating the success of the operation.
-- `color_cube_pixels(const MyPoint&, const MyPoint&, int, cv::VideoCapture&, cv::Mat&) -> void`: This function extracts the pixels within the color cube from the video frame, based on the provided corner points, side length, video capture object, and a matrix to store the extracted pixels.
-
-Viewing and capturing frames:
-- `view_frame() -> int`: This function displays the camera frame for viewing and returns a status code indicating the success of the operation.
-- `take_picture() -> int`: This function captures a full-color picture using the camera and returns a status code indicating the success of the operation.
-- `take_mono_picture() -> int`: This function captures a monochrome (black and white) picture using the camera and returns a status code indicating the success of the operation.
-
-These functions provide a set of capabilities for interacting with a camera, including setup, calibration, change detection, color analysis, frame viewing, and picture capturing.
+You can use the provided information to create a detailed and informative README.md for your GitHub repository.
