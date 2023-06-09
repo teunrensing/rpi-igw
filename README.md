@@ -97,17 +97,17 @@ This diagram illustrates the relationships and attributes of the classes involve
 +-----------------------------------------------------------------------------------------------+
 |                                           Camera                                              |
 +-----------------------------------------------------------------------------------------------+
-|  Camera()                                                                                     |
-|  ~Camera()                                                                                    |
-|  setup_camera() -> cv::VideoCapture                                                           |
-|  calibrate()                                                                                  |
-|  detectChange() -> int                                                                        |
-|  set_values_color_cube(const MyPoint&, const MyPoint&, int, cv::VideoCapture&) -> int         |
-|  get_color_value_cube(const MyPoint&, const MyPoint&, int, cv::VideoCapture&) -> int          |
-|  color_cube_pixels(const MyPoint&, const MyPoint&, int, cv::VideoCapture&, cv::Mat&) -> void  |
-|  view_frame() -> int                                                                          |
-|  take_picture() -> int                                                                        |
-|  take_mono_picture() -> int                                                                   |
+|  -Camera()                                                                                     |
+|  -~Camera()                                                                                    |
+|  -setup_camera() -> cv::VideoCapture                                                           |
+|  -calibrate()                                                                                  |
+|  -detectChange() -> int                                                                        |
+|  -set_values_color_cube(const MyPoint&, const MyPoint&, int, cv::VideoCapture&) -> int         |
+|  -get_color_value_cube(const MyPoint&, const MyPoint&, int, cv::VideoCapture&) -> int          |
+|  -color_cube_pixels(const MyPoint&, const MyPoint&, int, cv::VideoCapture&, cv::Mat&) -> void  |
+|  -view_frame() -> int                                                                          |
+|  -take_picture() -> int                                                                        |
+|  -take_mono_picture() -> int                                                                   |
 +-----------------------------------------------------------------------------------------------+
 The `Camera` class represents a camera device and provides various functions for interacting with it. Here's a breakdown of the functions:
 
